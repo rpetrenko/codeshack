@@ -1,4 +1,8 @@
 ## Snake
+To install run
+```bash
+pip install -r requirements.txt
+```
 Model and all 2D coordinates are handled in base/ folder. To run simulation
 ```bash
 python console.py
