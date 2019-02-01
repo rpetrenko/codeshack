@@ -13,7 +13,7 @@ def generate_symbols(length):
 
 
 class Game(object):
-    def __init__(self, height, width, s_empty="_"):
+    def __init__(self, height, width, s_empty="_", periodic=None):
         """
         :param height:
         :param width:
@@ -27,6 +27,7 @@ class Game(object):
         self.snakes = list()
         self.food = None
         self.update = []
+        self.periodic = periodic
 
     def _is_empty(self, x, y):
         return ord(self.s_empty) == self.board[x][y]
@@ -104,6 +105,20 @@ class Game(object):
         self.board[x][y] = ord(symbol)
         self.update.append((x, y, symbol))
 
+    def _make_periodic(self, x, y):
+        if x < 0:
+            x = self.h - 1
+        elif x == self.h:
+            x = 0
+        elif y < 0:
+            y = self.w - 1
+        elif y == self.w:
+            y = 0
+        return [x, y]
+
+    def _outside(self, x, y):
+        return x < 0 or x == self.h or y < 0 or y == self.w
+
     def make_update(self):
         self.update = []
         for snake in self.snakes:
@@ -117,33 +132,40 @@ class Game(object):
                 [x + 1, y], # down
                 [x - 1, y]  # up
             ]
-            weights = np.zeros(4)
+            # weight = -1, means snake dies
+            weights = np.array([-1] * 4)
             for i in range(4):
-                # periodic boundary
-                if moves[i][0] < 0:
-                    moves[i][0] = self.h - 1
-                elif moves[i][0] == self.h:
-                    moves[i][0] = 0
-                elif moves[i][1] < 0:
-                    moves[i][1] = self.w - 1
-                elif moves[i][1] == self.w:
-                    moves[i][1] = 0
-                # find best move
-                s = chr(self.board[moves[i][0]][moves[i][1]])
-                if s == snake.symbol:
-                    # itself
-                    weight = -1
-                elif s == self.s_empty:
-                    # empty cell
-                    weight = 1 + np.random.randint(3)
-                elif s == self.food.symbol:
-                    # food
-                    weight = 10 + np.random.randint(3)
+                x_new, y_new = moves[i]
+                if self.periodic:
+                    # periodic boundary
+                    x_new, y_new = self._make_periodic(x_new, y_new)
+                    moves[i] = [x_new, y_new]
+                if 0 <= x_new < self.h and 0 <= y_new < self.w:
+                    # find best move
+                    s = chr(self.board[x_new][y_new])
+                    if s == snake.symbol:
+                        # itself
+                        weight = -1
+                    elif s == self.s_empty:
+                        # empty cell
+                        weight = 1
+                    elif s == self.food.symbol:
+                        # food
+                        weight = 10
+                    else:
+                        # another snake
+                        weight = -1
                 else:
-                    # another snake
+                    # out of bounds
                     weight = -1
                 weights[i] = weight
-            imove = weights.argmax()
+
+            # get best move, if several moves have the same weight,
+            # then choose randomly one
+            imoves = np.argwhere(weights == np.amax(weights)).ravel()
+            if imoves.shape[0] > 1:
+                np.random.shuffle(imoves)
+            imove = imoves[0]
             if weights[imove] == -1:
                 # no moves, snake dies
                 for x, y in snake.points:
@@ -165,8 +187,15 @@ class Game(object):
                 self.set_board(x_new, y_new, snake.symbol)
 
 
-def init_game(height, width, num_snakes, snake_length, n_foods, s_empty=" "):
-    game = Game(height, width, s_empty=s_empty)
+def init_game(height,
+              width,
+              num_snakes,
+              snake_length,
+              n_foods,
+              s_empty=" ",
+              periodic=False
+              ):
+    game = Game(height, width, s_empty=s_empty, periodic=periodic)
     game.create_snakes(num_snakes, snake_length)
     game.create_food(n_foods)
     # place snakes

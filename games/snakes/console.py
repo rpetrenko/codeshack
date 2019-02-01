@@ -13,7 +13,7 @@ def run_game():
     num_snakes = 26
     num_snakes = min(num_snakes, height - 3)
     snake_length = 1
-    n_food = 200
+    n_food = 26 * 40
     n_food = min(n_food, board_h*board_w - num_snakes)
     curses.initscr()
     curses.noecho()
