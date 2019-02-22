@@ -19,11 +19,15 @@ def loan_montly(payment, balance, interest, monthly_pay, months, data):
 
 
 if __name__ == "__main__":
+    """
+    Last payment is always greater than the balance in previous month,
+    since within the last month the interest is getting accured
+    """
     data = []
-    amount, interest, monthly_pay, years = 150000, 0.06, 899.33, 30
-    # amount, interest, monthly_pay, years = 2000, 0.09, 91.37, 2
+    amount, annual_interest, monthly_pay, years = 150000, 0.06, 899.33, 30
+    # amount, annual_interest, monthly_pay, years = 2000, 0.09, 91.37, 2
     months = years * 12
-    loan_montly(0, amount, interest/12., monthly_pay, months, data)
+    loan_montly(0, amount, annual_interest / 12., monthly_pay, months, data)
     df = pd.DataFrame(data).set_index('month')
     print(df[["payment", "balance"]])
     assert df.shape[0] == months + 1, "something's wrong with the number of payments"
