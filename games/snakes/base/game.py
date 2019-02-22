@@ -44,9 +44,10 @@ class Game(object):
         return res
 
     def _is_another_snake(self, snake_symbol, x, y):
-        if self._is_food(x, y) or self._is_empty(x, y):
+        if self._is_food(x, y) or self._is_empty(x, y) or snake_symbol == chr(self.board[x][y]):
             return False
-        return snake_symbol == chr(self.board[x][y])
+        else:
+            return True
 
     def create_snakes(self, num_snakes, snake_length):
         snake_symbols = generate_symbols(num_snakes)
@@ -218,6 +219,7 @@ class Game(object):
                 for x, y in points:
                     if self._is_another_snake(snake.symbol, x, y):
                         self.snake_dies(snake)
+
 
 def init_game(height,
               width,

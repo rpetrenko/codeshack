@@ -4,13 +4,13 @@ import base as b
 
 
 def run_game():
-    board_w = 10#120
-    board_h = 5#30
+    board_w = 120
+    board_h = 30
     info_w = 10
     height = board_h + 2
     width = board_w + info_w + 2
     delay = 100
-    num_snakes = 2
+    num_snakes = 26
     num_snakes = min(num_snakes, height - 3)
     snake_length = 1
     n_food = 26 * 40
@@ -46,6 +46,8 @@ def run_game():
             x += 1
         msg = "{}:{:3}".format(game.food.symbol, game.food.length)
         win.addstr(height-2, first_y, msg)
+        all_dead = all([x.dead for x in game.snakes])
+        return all_dead
 
     def update_board():
         if game.update:
@@ -64,7 +66,9 @@ def run_game():
             game.make_update()
             update_board()
             frame += 1
-            draw_info(frame)
+            all_dead = draw_info(frame)
+            if all_dead:
+                key = None
             if key == ord('n'):
                 key = None
 
