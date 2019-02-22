@@ -3,9 +3,10 @@ import pandas as pd
 
 def loan_montly(payment, balance, interest, monthly_pay, months, data):
     if payment == 0:
-        data.append({"month": payment, "balance": balance, "payment": 0})
+        payment_paid = 0
     else:
-        data.append({"month": payment, "balance": balance, "payment": monthly_pay})
+        payment_paid = monthly_pay
+    data.append({"month": payment, "balance": balance, "payment": payment_paid})
     if payment == months:
         return
     else:
@@ -19,8 +20,8 @@ def loan_montly(payment, balance, interest, monthly_pay, months, data):
 
 if __name__ == "__main__":
     data = []
-    # amount, interest, monthly_pay, years = 150000, 0.06, 899.33, 30
-    amount, interest, monthly_pay, years = 2000, 0.09, 91.37, 2
+    amount, interest, monthly_pay, years = 150000, 0.06, 899.33, 30
+    # amount, interest, monthly_pay, years = 2000, 0.09, 91.37, 2
     months = years * 12
     loan_montly(0, amount, interest/12., monthly_pay, months, data)
     df = pd.DataFrame(data).set_index('month')
