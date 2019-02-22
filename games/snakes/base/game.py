@@ -32,6 +32,9 @@ class Game(object):
     def _is_empty(self, x, y):
         return ord(self.s_empty) == self.board[x][y]
 
+    def _is_food(self, x, y):
+        return ord(self.food.symbol) == self.board[x][y]
+
     def _get_empty(self):
         res = []
         for x in range(self.board.shape[0]):
@@ -39,6 +42,11 @@ class Game(object):
                 if self._is_empty(x, y):
                     res.append((x, y))
         return res
+
+    def _is_another_snake(self, snake_symbol, x, y):
+        if self._is_food(x, y) or self._is_empty(x, y):
+            return False
+        return snake_symbol == chr(self.board[x][y])
 
     def create_snakes(self, num_snakes, snake_length):
         snake_symbols = generate_symbols(num_snakes)
@@ -119,6 +127,28 @@ class Game(object):
     def _outside(self, x, y):
         return x < 0 or x == self.h or y < 0 or y == self.w
 
+    def snake_dies(self, snake):
+        # no moves, snake dies
+        for x, y in snake.points:
+            self.set_board(x, y, self.food.symbol)
+        self.food.nfood += snake.length
+        snake.killme()
+
+    def _inside(self, x, y):
+        return 0 <= x < self.h and 0 <= y < self.w
+
+    def get_points_around(self, point, step=1):
+        x, y = point
+        r1 = []
+        for i in range(x-step, x+step+1):
+            for j in range(y-step, y+step+1):
+                if x == i and y == j:
+                    # exclude self
+                    continue
+                if self._inside(i, j):
+                    r1.append([i, j])
+        return r1
+
     def make_update(self):
         self.update = []
         for snake in self.snakes:
@@ -167,11 +197,7 @@ class Game(object):
                 np.random.shuffle(imoves)
             imove = imoves[0]
             if weights[imove] == -1:
-                # no moves, snake dies
-                for x, y in snake.points:
-                    self.set_board(x, y, self.food.symbol)
-                self.food.nfood += snake.length
-                snake.killme()
+                self.snake_dies(snake)
             else:
                 # we have a move, proceed
                 x_new, y_new = moves[imove]
@@ -186,6 +212,12 @@ class Game(object):
                     self.food.nfood -= 1
                 self.set_board(x_new, y_new, snake.symbol)
 
+            # kill snake if it touches the other snake
+            points = self.get_points_around(snake.points[0], step=1)
+            if points:
+                for x, y in points:
+                    if self._is_another_snake(snake.symbol, x, y):
+                        self.snake_dies(snake)
 
 def init_game(height,
               width,
@@ -208,7 +240,7 @@ def init_game(height,
 
 if __name__ == "__main__":
     height = 5
-    width = 5
+    width = 10
     num_snakes = 2
     snake_length = 1
     n_foods = 5
@@ -219,9 +251,8 @@ if __name__ == "__main__":
 
     print(game.get_food_points())
 
-    for i in range(100):
+    for i in range(20):
         game.make_update()
-        if i % 10:
-            game.print_board()
+        game.print_board()
     game.make_update()
     game.print_board()

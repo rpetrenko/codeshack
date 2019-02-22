@@ -4,13 +4,13 @@ import base as b
 
 
 def run_game():
-    board_w = 120
-    board_h = 30
+    board_w = 10#120
+    board_h = 5#30
     info_w = 10
     height = board_h + 2
     width = board_w + info_w + 2
     delay = 100
-    num_snakes = 26
+    num_snakes = 2
     num_snakes = min(num_snakes, height - 3)
     snake_length = 1
     n_food = 26 * 40
