@@ -6,8 +6,8 @@ from base.food import Food
 
 
 def generate_symbols(length):
-    min_char = ord('a')
-    max_char = ord('z')
+    min_char = ord('A')
+    max_char = ord('Z')
     assert length <= max_char - min_char + 1, "maximum of 26 symbols supported"
     return [chr(min_char + i) for i in range(length)]
 
@@ -72,11 +72,11 @@ class Game(object):
         return list(zip(*np.where(self.board == ord(self.food.symbol))))
 
     def print_board(self):
-        print()
         lines = self.get_board()
         for line in lines:
             s = " ".join(line)
             print(s)
+        print()
 
     def place_food(self, nfood):
         v = ord(self.food.symbol)
@@ -139,6 +139,7 @@ class Game(object):
         return 0 <= x < self.h and 0 <= y < self.w
 
     def get_points_around(self, point, step=1):
+        assert step == 1, "larger neighbors not implemented"
         x, y = point
         r1 = []
         for i in range(x-step, x+step+1):
@@ -146,9 +147,15 @@ class Game(object):
                 if x == i and y == j:
                     # exclude self
                     continue
+                if x != i and y != j:
+                    # exclude diagonals
+                    continue
                 if self._inside(i, j):
                     r1.append([i, j])
         return r1
+
+    def snakes_dead(self):
+        return all([x.dead for x in self.snakes])
 
     def make_update(self):
         self.update = []
@@ -243,18 +250,17 @@ def init_game(height,
 if __name__ == "__main__":
     height = 5
     width = 10
-    num_snakes = 2
+    num_snakes = 1
     snake_length = 1
-    n_foods = 5
+    n_foods = 49
 
     game = init_game(height, width, num_snakes, snake_length, n_foods, s_empty="_")
 
+    frame = 0
+    print(frame)
     game.print_board()
-
-    print(game.get_food_points())
-
-    for i in range(20):
+    while not game.snakes_dead():
+        frame += 1
+        print(frame)
         game.make_update()
         game.print_board()
-    game.make_update()
-    game.print_board()
